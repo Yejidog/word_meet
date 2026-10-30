@@ -4,38 +4,49 @@
 </style></head>
 <body><div class="shell"><header><a class="brand" href="./" aria-label="同词相遇首页"><span class="brand-icon">↔</span>同词相遇<span class="brand-en">WORD MEET</span></a><span class="tag">JUST THE TWO OF US</span></header>
 <main><section id="lobby"><div class="eyebrow"><span class="dot"></span> 一场只属于你们的默契实验</div><h1>从两个词出发，<br>在<span class="accent">同一个词</span>相遇。</h1><p class="lead">不用猜对方的答案。顺着彼此的联想，<br>一点一点，靠近同一个想法。</p><div class="word-art" aria-hidden="true"><div class="paper first"><small>你想到的</small><b>海浪</b><span>01 / YOUR WORD</span></div><span class="art-plus">+</span><div class="paper second"><small>朋友想到的</small><b>夏天</b><span>02 / THEIR WORD</span></div><div class="meet-label">也许下一站，是「海边」 ↗</div></div>
-<form id="enter-form" class="entry card"><div class="entry-top"><span class="mini">双人房间 / 02 SEATS</span><span>✳</span></div><h2 id="entry-title">先用一部手机，试试你们的默契。</h2><label for="nickname">第一位玩家的昵称</label><input id="nickname" maxlength="16" autocomplete="nickname" placeholder="输入你的昵称，另一位暂称“朋友”" required><button class="primary" id="enter-button">开始同屏试玩 <span>↗</span></button><p class="muted" id="entry-note">同屏试玩：两人轮流使用一部手机 · 异地联机尚未接入</p></form>
+<form id="enter-form" class="entry card"><div class="entry-top"><span class="mini">双人房间 / 02 SEATS</span><span>✳</span></div><h2 id="entry-title">把今天的默契，留给一个人。</h2><label for="nickname">你的昵称</label><input id="nickname" maxlength="16" autocomplete="nickname" placeholder="朋友怎么称呼你？" required><button class="primary" id="enter-button">创建我们的房间 <span>↗</span></button><p class="muted" id="entry-note">无需注册 · 邀请链接加入 · 每个房间仅限两人</p></form>
 <div class="rules"><div><span>01</span><h3>各写一个词</h3><p>第一轮随心写，不要提前商量。</p></div><div><span>02</span><h3>一起揭晓</h3><p>两人都提交后，答案才会出现。</p></div><div><span>03</span><h3>让联想靠近</h3><p>联系上一轮的两个词，直到同词。</p></div></div></section>
-<section id="room" hidden><div class="room-top"><div><div class="eyebrow">OUR LITTLE ROOM</div><h1>让想法，<span class="accent">慢慢靠近。</span></h1></div><button id="invite" class="secondary">复制邀请 ↗</button></div><div class="room-meta"><span id="room-number"></span><span id="network" role="status">正在连接…</span></div><div class="players" id="players"></div><div class="play-card card"><div class="round-line"><span id="round-label">ROUND 01</span><span id="phase">自由联想</span></div><h2 id="prompt">此刻，你想到了什么？</h2><p id="hint" class="muted">第一个词，没有标准答案。</p><div id="reveal" class="reveal" hidden></div><form id="word-form"><label class="sr-only" for="word">你的词语</label><input id="word" placeholder="写下脑海里的那个词…" maxlength="40" autocomplete="off"><div class="input-bottom"><span id="word-note">最多 20 个字 · 提交后锁定</span><button class="primary" id="submit-word">写好了 ↗</button></div></form><button id="next" class="primary next" hidden>继续靠近 ↗</button><p id="waiting" class="waiting" role="status"></p></div><div class="history-head"><h2>相遇的轨迹</h2><span>每一次联想，都算数。</span></div><div id="history"></div><div class="room-bottom"><p>这是 GitHub Pages 同屏试玩版，答案和进度只保存在本机浏览器。<br>两部手机暂时不能自动同步；清理浏览器数据会丢失进度。</p><button id="leave" class="text-button">返回首页</button></div></section>
-<p id="notice" class="notice" role="alert" hidden></p></main><footer><span>WORD MEET © 2026</span><span>两个人，刚刚好。 <span class="orange">✳</span></span></footer></div><dialog id="share-dialog"><h2>邀请你的朋友</h2><p>把下面的完整链接发给朋友。链接只发给你想邀请的人。</p><input id="share-url" readonly aria-label="邀请链接"><button id="close-share" class="primary">好的</button></dialog><script>const $=id=>document.getElementById(id);
-const KEY='word-meet:local-demo:v1';
-let game=null,turn=0,handing=false;
-function notice(text){$('notice').textContent=text;$('notice').hidden=false;setTimeout(()=>$('notice').hidden=true,5000)}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(game))}catch{notice('当前浏览器无法保存进度，请保持页面打开。')}}
-function el(tag,text,cls){const e=document.createElement(tag);e.textContent=text;if(cls)e.className=cls;return e}
-function matches(a,b){return a.normalize('NFKC').trim().toLowerCase()===b.normalize('NFKC').trim().toLowerCase()}
-function render(){
- $('lobby').hidden=true;$('room').hidden=false;$('invite').hidden=true;
- $('room-number').textContent='同屏试玩 · 两人轮流使用一部手机';$('network').textContent='● 本机运行，无需联机';
- const revealed=game.words.every(Boolean),won=revealed&&matches(...game.words);
- turn=game.words[0]?1:0;
- $('players').replaceChildren(...game.names.map((name,i)=>{const p=el('div','','player');p.append(el('span',String(i+1),'avatar'));const t=el('div','');t.append(el('strong',name),el('small',game.words[i]?'已写好':!revealed&&i===turn?'轮到你了':'等待接过手机'));p.append(t);return p}));
- $('round-label').textContent='ROUND '+String(game.round).padStart(2,'0');$('phase').textContent=won?'默契达成':game.round===1?'自由联想':'联想靠近';
- $('prompt').textContent=handing?'请把手机交给 '+game.names[1]:won?'我们，在同一个词里相遇了。':revealed?'两个想法，下一站会是哪里？':game.names[turn]+'，你想到了什么？';
- const last=game.history.at(-1);
- $('hint').textContent=handing?'第一位的答案已收好。接过手机后，点击下方按钮。':won?'用了 '+game.round+' 轮，找到属于你们的默契。':last?'联系「'+last.words[0]+'」和「'+last.words[1]+'」，写下新的联想。':'第一轮随心写，不要提前商量。';
- $('word-form').hidden=revealed||handing;$('reveal').hidden=!revealed;$('next').hidden=!(revealed||handing);
- $('word').value='';$('word').disabled=false;$('submit-word').disabled=false;
- if(revealed)$('reveal').replaceChildren(...game.words.map(w=>el('div',w)));
- $('next').textContent=handing?'我接过手机了，开始写词 ↗':won?'再来一局 ↗':'继续靠近 ↗';$('next').disabled=false;
- $('waiting').textContent=handing?'请上一位暂时移开视线。':revealed?'两人都写好后，答案在这里一起揭晓。':'写好后会进入交接页面，不会显示第一位的词。';
- const history=$('history');history.replaceChildren();const rounds=[...game.history,...(revealed?[{round:game.round,words:game.words}]:[])];
- if(!rounds.length)history.append(el('p','这里会记下，你们一步步靠近的过程。','empty-history'));
- for(const h of rounds.reverse()){const row=el('div','','history-row');row.append(el('small',String(h.round).padStart(2,'0')),el('span',h.words[0]),el('i','↔'),el('span',h.words[1]));history.append(row)}
+<section id="room" hidden><div class="room-top"><div><div class="eyebrow">OUR LITTLE ROOM</div><h1>让想法，<span class="accent">慢慢靠近。</span></h1></div><button id="invite" class="secondary">复制邀请 ↗</button></div><div class="room-meta"><span id="room-number"></span><span id="network" role="status">正在连接…</span></div><div class="players" id="players"></div><div class="play-card card"><div class="round-line"><span id="round-label">ROUND 01</span><span id="phase">自由联想</span></div><h2 id="prompt">此刻，你想到了什么？</h2><p id="hint" class="muted">第一个词，没有标准答案。</p><div id="reveal" class="reveal" hidden></div><form id="word-form"><label class="sr-only" for="word">你的词语</label><input id="word" placeholder="写下脑海里的那个词…" maxlength="40" autocomplete="off"><div class="input-bottom"><span id="word-note">最多 20 个字 · 提交后锁定</span><button class="primary" id="submit-word">写好了 ↗</button></div></form><button id="next" class="primary next" hidden>继续靠近 ↗</button><p id="waiting" class="waiting" role="status"></p></div><div class="history-head"><h2>相遇的轨迹</h2><span>每一次联想，都算数。</span></div><div id="history"></div><div class="room-bottom"><p>临时离开没关系，回到此浏览器就能接着玩。<br>房间在连续 7 天未使用后清理；请保留浏览器数据。</p><button id="leave" class="text-button">返回首页</button></div></section>
+<p id="notice" class="notice" role="alert" hidden></p></main><footer><a href="./demo.html">同屏试玩</a><span>两个人，刚刚好。 <span class="orange">✳</span></span></footer></div><dialog id="share-dialog"><h2>邀请你的朋友</h2><p>把下面的完整链接发给朋友。链接只发给你想邀请的人。</p><input id="share-url" readonly aria-label="邀请链接"><button id="close-share" class="primary">好的</button></dialog><script>const $=id=>document.getElementById(id);
+const store={get(k){try{return localStorage.getItem('wm:'+k)}catch{return null}},set(k,v){try{localStorage.setItem('wm:'+k,v)}catch{notify('浏览器未允许保存数据，关闭页面后可能无法恢复房间。')}}};
+let session=null,current=null,busy=false,polling=false,timer,noticeTimer,signature='',failures=0,revision=0;
+const fragment=new URLSearchParams(location.hash.slice(1));
+const inviteId=fragment.get('room'),inviteSecret=fragment.get('invite');
+function notify(message){$('notice').textContent=message;$('notice').hidden=false;clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>$('notice').hidden=true,6500)}
+async function api(path,body,token=session?.token){const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),10000);try{const res=await fetch("https://word-meet.siroooo0502.workers.dev"+'/api/'+path,{method:body?'POST':'GET',headers:{...(body?{'Content-Type':'application/json'}:{}),...(token?{Authorization:'Bearer '+token,'X-Room-ID':session.id}:{})},body:body?JSON.stringify(body):undefined,signal:controller.signal,cache:'no-store'});const data=await res.json();if(!res.ok)throw Object.assign(new Error(data.error||'请求失败'),{status:res.status});return data}catch(e){if(e.name==='AbortError')throw new Error('连接超时，稍后自动重连');throw e}finally{clearTimeout(timeout)}}
+function loadSession(id){try{return JSON.parse(store.get('session:'+id)||'null')}catch{return null}}
+function remember(s){session=s;store.set('session:'+s.id,JSON.stringify(s));store.set('last',s.id)}
+function updateHash(){history.replaceState(null,'','#'+new URLSearchParams({room:session.id,...(session.invite?{invite:session.invite}:{})}))}
+function enterRoom(){signature='';$('lobby').hidden=true;$('room').hidden=false;updateHash();schedule(0)}
+function schedule(ms=3000){clearTimeout(timer);timer=setTimeout(sync,ms)}
+async function sync(){if(!session||polling)return;polling=true;const started=revision;try{const s=await api('state');failures=0;$('network').textContent='● 已同步';if(started===revision&&!busy)render(s)}catch(e){failures++;$('network').textContent=navigator.onLine?'连接中，正在重试…':'网络已断开，等待恢复…';if(e.status===401||e.status===404){notify(e.message);session=null;$('room').hidden=true;$('lobby').hidden=false;configureLobby()}}finally{polling=false;if(session)schedule(document.hidden?10000:Math.min(3000*2**Math.min(failures,3),15000))}}
+function draftKey(s){return 'draft:'+s.id+':'+s.game+':'+s.round}
+function node(tag,text,cls){const e=document.createElement(tag);e.textContent=text;if(cls)e.className=cls;return e}
+function render(s){current=s;
+ const sig=JSON.stringify({...s,players:s.players.map(({seen,...p})=>p)});if(sig===signature)return;signature=sig;
+ $('room-number').textContent='双人私房 · '+s.id.slice(0,6).toUpperCase();$('invite').hidden=!session.invite;
+ const me=s.players.find(p=>p.seat===s.seat),friend=s.players.find(p=>p.seat!==s.seat),ready=!!friend;
+ const players=$('players');players.replaceChildren();for(let seat=0;seat<2;seat++){const p=s.players.find(p=>p.seat===seat);const card=node('div','','player');card.append(node('span',p?Array.from(p.name)[0]:'?','avatar'));const info=node('div','');info.append(node('strong',p?p.name+(seat===s.seat?' · 你':''):'等待朋友'));info.append(node('small',p?(p.online?'在线':'暂时离开')+' · '+(p.submitted?'已写好':'正在联想'):'邀请后就能开始'));card.append(info);players.append(card)}
+ $('round-label').textContent='ROUND '+String(s.round).padStart(2,'0');$('phase').textContent=s.won?'默契达成':s.round===1?'自由联想':'联想靠近';
+ $('prompt').textContent=!ready?'留一个位置，给你的朋友。':s.won?'我们，在同一个词里相遇了。':s.revealed?'两个想法，下一站会是哪里？':s.myWord?'你的词，已经悄悄放好了。':'此刻，你想到了什么？';
+ const previous=s.history.find(h=>h.round===s.round-1);
+ $('hint').textContent=!ready?'复制右上角的邀请链接，发给朋友。':s.won?`用了 ${s.round} 轮，找到属于你们的默契。`:previous?`试着把「${previous.words[0]}」和「${previous.words[1]}」联系起来。`:'第一个词，没有标准答案。';
+ $('word-form').hidden=s.revealed;$('reveal').hidden=!s.revealed;$('next').hidden=!s.revealed;
+ if(s.revealed){const h=s.history.find(h=>h.round===s.round);$('reveal').replaceChildren(...h.words.map(w=>node('div',w)));$('next').textContent=me.vote?'等朋友准备好…':s.won?'再来一局 ↗':'继续靠近 ↗';$('next').disabled=!!me.vote||busy}
+ const word=$('word');const key=draftKey(s);if(word.dataset.key!==key){word.dataset.key=key;word.value=store.get(key)||''}if(s.myWord)word.value=s.myWord;
+ word.disabled=!ready||!!s.myWord;$('submit-word').disabled=!ready||!!s.myWord||busy;$('submit-word').textContent=s.myWord?'已锁定 ✓':'写好了 ↗';
+ $('waiting').textContent=!ready?'房间已就绪，等朋友赴约。':s.revealed?(me.vote?'你已准备好，等朋友一起继续。':'两人都点击后，再开始下一轮。'):s.myWord?'等朋友写好后，两个词会一起揭晓。':friend.submitted?'朋友已经写好，正在等你。':'不着急，默契值得一点等待。';
+ const list=$('history');list.replaceChildren();if(!s.history.length)list.append(node('p','这里会记下，你们一步步靠近的过程。','empty-history'));for(const h of [...s.history].reverse()){const row=node('div','','history-row');row.append(node('small',String(h.round).padStart(2,'0')),node('span',h.words[0]),node('i','↔'),node('span',h.words[1]));list.append(row)}
 }
-$('enter-form').addEventListener('submit',e=>{e.preventDefault();const name=$('nickname').value.trim();if(!name)return;game={names:[name,'朋友'],round:1,history:[],words:['','']};handing=false;save();render()});
-$('word-form').addEventListener('submit',e=>{e.preventDefault();const word=$('word').value.normalize('NFKC').trim();if(!word||Array.from(word).length>20||/[\p{Cc}\p{Cf}]/u.test(word)){notice('请输入 1–20 个字');return}game.words[turn]=word;if(turn===0)handing=true;save();render()});
-$('next').addEventListener('click',()=>{if(handing){handing=false;render();return}if(matches(...game.words)){game.round=1;game.history=[]}else{game.history.push({round:game.round,words:[...game.words]});game.round++}game.words=['',''];save();render()});
-$('leave').addEventListener('click',()=>{$('room').hidden=true;$('lobby').hidden=false});
-try{const saved=JSON.parse(localStorage.getItem(KEY));if(saved&&Array.isArray(saved.names)&&saved.names.length===2&&Array.isArray(saved.words)&&saved.words.length===2&&Array.isArray(saved.history)&&Number.isInteger(saved.round)){game=saved;handing=!!game.words[0]&&!game.words[1];render()}}catch{}
+function configureLobby(){const invited=!!(inviteId&&inviteSecret);$('entry-title').textContent=invited?'朋友为你，留了一个位置。':'把今天的默契，留给一个人。';$('enter-button').textContent=invited?'加入朋友的房间 ↗':'创建我们的房间 ↗';$('entry-note').textContent=invited?'输入昵称，就可以赴约。':'无需注册 · 邀请链接加入 · 每个房间仅限两人';$('nickname').value=store.get('name')||''}
+$('enter-form').addEventListener('submit',async e=>{e.preventDefault();if(busy)return;busy=true;$('enter-button').disabled=true;try{const name=$('nickname').value.trim();store.set('name',name);const s=inviteId&&inviteSecret?await api('join',{id:inviteId,invite:inviteSecret,name},null):await api('create',{name},null);remember(s);enterRoom()}catch(e){notify(e.message)}finally{busy=false;$('enter-button').disabled=false}});
+$('word').addEventListener('input',()=>{if(current)store.set(draftKey(current),$('word').value)});
+$('word-form').addEventListener('submit',async e=>{e.preventDefault();if(busy||!current)return;busy=true;revision++;$('submit-word').disabled=true;const payload={word:$('word').value,game:current.game,round:current.round};try{const s=await api('word',payload);busy=false;signature='';render(s)}catch(e){notify(e.message);busy=false;signature='';if(current)render(current);schedule(0)}finally{busy=false}});
+$('next').addEventListener('click',async()=>{if(busy||!current)return;busy=true;revision++;$('next').disabled=true;try{const s=await api('next',{game:current.game,round:current.round});busy=false;signature='';render(s)}catch(e){notify(e.message);busy=false;signature='';if(current)render(current);schedule(0)}finally{busy=false}});
+$('invite').addEventListener('click',async()=>{const link=location.origin+location.pathname+'#'+new URLSearchParams({room:session.id,invite:session.invite});try{await navigator.clipboard.writeText(link);notify('邀请链接已复制，发给你的朋友吧。')}catch{$('share-url').value=link;$('share-dialog').showModal();$('share-url').select()}});
+$('close-share').addEventListener('click',()=>$('share-dialog').close());
+$('leave').addEventListener('click',()=>{store.set('last','');location.href=location.pathname});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&session)schedule(0)});window.addEventListener('online',()=>session&&schedule(0));
+configureLobby();
+const saved=loadSession(inviteId||store.get('last'));if(saved){remember(saved);enterRoom()}
 </script></body></html>
