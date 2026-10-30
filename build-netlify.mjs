@@ -1,0 +1,11 @@
+import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
+const read=p=>readFileSync(new URL(p,import.meta.url),'utf8');
+let html=read('./public/index.html'),js=read('./public/app.js');
+js=js.replace("Authorization:'Bearer '+token", "Authorization:'Bearer '+token,'X-Room-ID':session.id");
+js=js.replace("location.origin+'/#'", "location.origin+location.pathname+'#'").replace("location.href='/'", "location.href=location.pathname");
+js=js.replace('schedule(ms=2000)','schedule(ms=4000)').replace('2000*2**','4000*2**').replace('10000);try{const res=await fetch','15000);try{const res=await fetch');
+html=html.replace('<link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script>','<style>'+read('./public/style.css')+'</style>');
+html=html.replace('</body>','<script>'+js+'</script></body>');
+mkdirSync(new URL('./netlify-site',import.meta.url),{recursive:true});
+writeFileSync(new URL('./netlify-site/index.html',import.meta.url),html);
+console.log('Built Netlify same-origin multiplayer client.');
